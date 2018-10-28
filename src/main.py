@@ -8,30 +8,25 @@ from sklearn.decomposition import FastICA, PCA
 import Indexes as idx
 import technicalIndicators as ti
 
-tickers = ['AAPL', 'MSFT', '^GSPC']
+start_date = '2010-08-03'
+end_date = '2015-05-23'
 
-start_date = '2010-01-01'
-end_date = '2016-12-31'
+figclose, ax = plt.subplots(figsize=(16,9))
 
-# panel_data = web.DataReader(tickers, 'yahoo', start_date, end_date)
-# panel_data.head(9)
+data =idx.Index('FB', start_date, end_date)
 
-# close = panel_data['Close']
-# all_weekdays = pd.date_range(start=start_date, end=end_date, freq='B')
-# close = close.reindex(all_weekdays)
-# close = close.fillna(method='ffill')
-# close.head(10)
-# msft = close.loc[:, 'MSFT']
-# short_rolling_msft = msft.rolling(window=20).mean()
-# long_rolling_msft = msft.rolling(window=100).mean()
-# figclose, ax = plt.subplots(figsize=(16,9))
 
-# ema_short = close.ewm(span=20, adjust=False).mean()
-# ax.plot(ema_short.loc[start_date:end_date, :].index, ema_short.loc[start_date:end_date, 'MSFT'], label = 'Span 20-days EMA')
+df = pd.DataFrame()
+df['EMA'] = ti.ema(data.Close, 10)
+df['%K'] = ti.STOK(data.Close, data.Low, data.High, 10)
+df['ROC']=ti.ROC(data.Close,10)
+df['RSI']=ti.RSI(data.Close)
+df['AccDo']=ti.AccDO(data.Close,data.High,data.Low)
+df['MACD']=ti.MACD(data.Close)
+df['WilliamsR']=ti.WilliamsR(data.Close,data.High,data.Low)
+df['High Price accelerations']=ti.HPA(data.High,14)
+df['Disparity 5']=ti.Disparity(data.Close,5)
+df['Disparity 10']=ti.Disparity(data.Close,10)
 
-df = pd.DataFrame(idx.get_stock('FB', '1/1/2016', '12/31/2016'))
-df['High'] = idx.get_high('FB', '1/1/2016', '12/31/2016')
-df['Low'] = idx.get_low('FB', '1/1/2016', '12/31/2016')
-df['%K'] = ti.STOK(df['Close'], df['Low'], df['High'], 14)
-df['%D'] = ti.ema(df['Close'], 14)
+ax.plot(data.High.loc[start_date:end_date], label = 'Span 20-days EMA')
 df.tail()
