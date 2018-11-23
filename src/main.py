@@ -1,32 +1,59 @@
-import pandas_datareader.data as web
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+
 from scipy import signal
 from sklearn.decomposition import FastICA, PCA
+from datetime import tzinfo, timedelta, datetime
+
+import WebDataSource as dataSource
+
+start_date = datetime(2010, 8, 3)
+end_date = datetime(2015, 5, 23)
+
+df = dataSource.WebDataSource('FB',start_date,end_date).Data
+
+numberOfFeatures=5
+X = df.iloc[:,0:numberOfFeatures].values
+print("Value of X \n {0}".format(X))
+print(X.shape)
+print("Standard deviation:  {0} with shape{1}".format(X.std(axis=0),X.std(axis=0).shape))
+
+X = np.multiply(X,1/X.std(axis=0))
+
+ica = FastICA(n_components=numberOfFeatures)
+S_ = ica.fit_transform(X)  # Reconstruct signals
+A_ = ica.mixing_  # Get estimated mixing matrix
 
 
-import Indexes as idx
-import technicalIndicators as ti
+# For comparison, compute PCA
+pca = PCA(n_components=numberOfFeatures)
+H = pca.fit_transform(X)  # Reconstruct signals based on orthogonal components
 
-start_date = '2010-08-03'
-end_date = '2015-05-23'
+# #############################################################################
+# Plot results
 
-figclose, ax = plt.subplots(figsize=(16,9))
+print(X.shape,S_.shape,H.shape)
+print(X[0:3,:])
+print(S_[0:3,:])
+print(H[0:3,:])
 
-data =idx.Index('FB', start_date, end_date)
+df.plot()
 
 
-df = pd.DataFrame()
-df['EMA'] = ti.ema(data.Close, 10)
-df['%K'] = ti.STOK(data.Close, data.Low, data.High, 10)
-df['ROC']=ti.ROC(data.Close,10)
-df['RSI']=ti.RSI(data.Close)
-df['AccDo']=ti.AccDO(data.Close,data.High,data.Low)
-df['MACD']=ti.MACD(data.Close)
-df['WilliamsR']=ti.WilliamsR(data.Close,data.High,data.Low)
-df['High Price accelerations']=ti.HPA(data.High,14)
-df['Disparity 5']=ti.Disparity(data.Close,5)
-df['Disparity 10']=ti.Disparity(data.Close,10)
 
-ax.plot(data.High.loc[start_date:end_date], label = 'Span 20-days EMA')
-df.tail()
+models = [X, S_, H]
+plt.figure()
+names = ['Observations (mixed signal)',
+         'ICA recovered signals',
+         'PCA recovered signals']
+colors = ['red', 'steelblue', 'orange','teal','green']
+
+for ii, (model, name) in enumerate(zip(models, names), 1):
+    plt.subplot(3, 1, ii)
+    plt.title(name)
+    for sig, color in zip(model.T, colors):
+        plt.plot(sig, color=color)
+
+plt.show()
+    

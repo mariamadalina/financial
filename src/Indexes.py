@@ -1,18 +1,13 @@
 import pandas_datareader.data as web
-
+from datetime import datetime
 class Index:
     def __init__(self, ticker, start, end):
         self.ticker = ticker
-        self.Close= _get_stock(ticker,start,end)
-        self.High=_get_high(ticker,start,end)
-        self.Low=_get_low(ticker,start,end)
 
+        reader = web.DataReader(ticker,'yahoo',start,end)
 
-def _get_stock(stock,start,end):
-     return web.DataReader(stock,'yahoo',start,end)['Close']
-
-def _get_high(stock,start,end):
-     return web.DataReader(stock,'yahoo',start,end)['High']
-
-def _get_low(stock,start,end):
-     return web.DataReader(stock,'yahoo',start,end)['Low']
+        self.Open=reader['Open']
+        self.Close= reader['Close']
+        self.High=reader['High']
+        self.Low=reader['Low']
+        self.Volume=reader['Volume']
