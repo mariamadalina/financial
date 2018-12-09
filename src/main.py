@@ -7,14 +7,13 @@ from scipy import signal
 from sklearn.decomposition import FastICA, PCA
 from sklearn.preprocessing import MinMaxScaler
 from datetime import tzinfo, timedelta, datetime
-import FileDataSource as fileDataSource
-import WebDataSource as dataSource
+import FileDataSource as ds
 
 start_date = datetime(2010, 8, 3)
 end_date = datetime(2015, 5, 23)
 
-df = dataSource.WebDataSource('FB',start_date,end_date).Data
-# other=fileDataSource.FileDataSource('data/ES 1 Day_Series_Indicators.csv',start_date,end_date).Data
+df =  ds.FileDataSource('data/ES 1 Day_Series_Indicators.csv').Data()
+#df=ds.WebDataSource(start_date,end_date,'FB').Data()
 
 numberOfFeatures=5
 X = df.iloc[:,0:numberOfFeatures].values
@@ -32,7 +31,7 @@ print('Min: {0}, Max: {1}'.format(scaler.data_min_, scaler.data_max_))
 # normalize the dataset and print the first 5 rows
 X = scaler.transform(X)
 
-ica = FastICA(n_components=numberOfFeatures)
+ica = FastICA(n_components=numberOfFeatures,fun='logcosh',whiten=True)
 S_ = ica.fit_transform(X)  # Reconstruct signals
 A_ = ica.mixing_  # Get estimated mixing matrix
 
