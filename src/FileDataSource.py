@@ -9,7 +9,6 @@ from AbstractDataSource import AbstractDataSource
 class FileDataSource(AbstractDataSource):
     def __init__(self, filePath):
         self._location = filePath
-        self._dataFrame = self._readData()
         super().__init__()
 
     def _curateDataframe(self,dataFrame: pd.DataFrame):
@@ -31,7 +30,6 @@ class WebDataSource(AbstractDataSource):
         self._ticker = ticker
         self._startDate = start_date
         self._end_date = end_date
-        self._dataFrame = self._readData()
         super().__init__()
 
     def _readData(self):

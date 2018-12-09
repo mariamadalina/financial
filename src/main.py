@@ -12,8 +12,12 @@ import FileDataSource as ds
 start_date = datetime(2010, 8, 3)
 end_date = datetime(2015, 5, 23)
 
-df =  ds.FileDataSource('data/ES 1 Day_Series_Indicators.csv').Data()
+
+dataSource = ds.FileDataSource('data/ES 1 Day_Series_Indicators.csv')
+df = dataSource.Data()
 #df=ds.WebDataSource(start_date,end_date,'FB').Data()
+info = dataSource.GetMissingValueInfo(df)
+print(info)
 
 numberOfFeatures=5
 X = df.iloc[:,0:numberOfFeatures].values
