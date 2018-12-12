@@ -1,12 +1,10 @@
-
+import sys
 import os
 import pandas as pd
-import technicalIndicators as ti
-from Indexes import Index as idx
-from AbstractDataSource import AbstractDataSource
+import features.sources.base as s
 
 
-class FileDataSource(AbstractDataSource):
+class FileDataSource(s._AbstractDataSource):
     def __init__(self, filePath):
         self._location = filePath
         super().__init__()
@@ -25,19 +23,3 @@ class FileDataSource(AbstractDataSource):
         return df   
 
 
-class WebDataSource(AbstractDataSource):
-    def __init__(self,start_date, end_date, ticker):
-        self._ticker = ticker
-        self._startDate = start_date
-        self._end_date = end_date
-        super().__init__()
-
-    def _readData(self):
-        data =idx(self._ticker,self._startDate,self._end_date)
-        df = pd.DataFrame()
-        df['Close']=data.Close
-        df['Open']=data.Open
-        df['High']=data.High
-        df['Low']=data.Low
-        df['Volume']=data.Volume
-        return df

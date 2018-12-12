@@ -7,27 +7,38 @@ from scipy import signal
 from sklearn.decomposition import FastICA, PCA
 from sklearn.preprocessing import MinMaxScaler
 from datetime import tzinfo, timedelta, datetime
-import FileDataSource as ds
+
+
+from Pipeline import CustomPypeline
+from features.sources import FileDataSource, WebDataSource
+
 
 start_date = datetime(2010, 8, 3)
 end_date = datetime(2015, 5, 23)
 
 
-dataSource = ds.FileDataSource('data/ES 1 Day_Series_Indicators.csv')
+dataSource = FileDataSource('data/ES 1 Day_Series_Indicators.csv')
 df = dataSource.Data()
 #df=ds.WebDataSource(start_date,end_date,'FB').Data()
 info = dataSource.GetMissingValueInfo(df)
 print(info)
 
+# # load dataset
+# X, y = CustomPypeline.load_dataset()
+# # get model list
+# models = define_models()
+
+# # add gbm models
+# models = define_gbm_models(models)
+
+# # evaluate models
+# results = evaluate_models(X, y, models)
+# # summarize results
+# summarize_results(results)
+
+X=df
+
 numberOfFeatures=5
-X = df.iloc[:,0:numberOfFeatures].values
-print("Value of X \n {0}".format(X))
-print(X.shape)
-print("Standard deviation:  {0} with shape{1}".format(X.std(axis=0),X.std(axis=0).shape))
-
-#X = np.multiply(X,1/X.std(axis=0))
-
-
 # normalize the data 
 scaler = MinMaxScaler(feature_range=(-1, 1))
 scaler = scaler.fit(X)
