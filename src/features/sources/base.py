@@ -56,14 +56,20 @@ def Disparity(close, range):
 
 class _AbstractDataSource(object):
 
-    __acceptedPrimeIndicators = ['Close', 'Open', 'High', 'Low', 'Volume']
+    __acceptedPrimeIndicators = ['Close', 'Open', 'High', 'Low', 'Volume', 'Delta']
 
     __acceptedDerivedIndicators = ['AvgExp', '%K', 'ROC', 'RSI','ACCUMULATION_DISTRIBUTION', 'MACD', 'WILLIAMS_R', 'HIGH_PRICE_ACCELERATION', 'DISPARITY_5','DISPARITY_10']
 
     __acceptedHeaders = set(__acceptedPrimeIndicators) | set(__acceptedDerivedIndicators)
 
     def __init__(self):
-        self._dataFrame = self._readData()
+        df = self._readData()
+        df = self._curateDataframe(df)
+        df = self.__computeDerivedIndicators(df)
+        df = self.__compute_Close_minus_Open(df)
+        df.fillna(0,inplace=True)
+        self._dataFrame=df
+
 
     def _curateDataframe(self,dataFrame: pd.DataFrame):
         notFoundColums = set(dataFrame.columns) - set (self.__acceptedHeaders)
@@ -87,6 +93,10 @@ class _AbstractDataSource(object):
             dataFrame['DISPARITY_10'] = Disparity(dataFrame.Close,10)
 
         return dataFrame
+    
+    def __compute_Close_minus_Open(self,dataFrame: pd.DataFrame):
+        dataFrame["Delta"] = dataFrame.Close - dataFrame.Open
+        return dataFrame
 
     @property
     def dataFrame(self):
@@ -96,23 +106,22 @@ class _AbstractDataSource(object):
     def dataFrame(self,value):
         self._dataFrame=value
 
-    def Data(self):
-        df = self._curateDataframe(self._dataFrame)
-        df = self.__computeDerivedIndicators(self._dataFrame)
-        return df
+    
+    def Target(self):
+        np.where( (self._dataFrame.Close-self._dataFrame.shift(-1).Open)>=0,1,-1) 
 
-    def GetData(self, df:pd.DataFrame, numberOfFeatures = 5,):
-        X = df.iloc[:,0:numberOfFeatures].values
-        print("Value of X \n {0}".format(X))
-        return X
+    def GetData(self):
+        return self._dataFrame.values
    
 
-    def GetMissingValueInfo(self, df:pd.DataFrame):
+    def GetMissingValueInfo(self):
         # Total missing values
-        mis_val = df.isnull().sum()
+        mis_val = self._dataFrame.isnull().sum()
         
         # Percentage of missing values
-        mis_val_percent = 100 * df.isnull().sum() / len(df)
+        mis_val_percent = 100 * self._dataFrame.isnull().sum() / len(self._dataFrame)
+
+        self._dataFrame.fillna()
         
         # Make a table with the results
         mis_val_table = pd.concat([mis_val, mis_val_percent], axis=1)
@@ -127,7 +136,7 @@ class _AbstractDataSource(object):
         '% of Total Values', ascending=False).round(1)
         
         # Print some summary information
-        print ("Your selected dataframe has " + str(df.shape[1]) + " columns.\n"      
+        print ("Your selected dataframe has " + str(self._dataFrame.shape[1]) + " columns.\n"      
             "There are " + str(mis_val_table_ren_columns.shape[0]) +
               " columns that have missing values.")
         
